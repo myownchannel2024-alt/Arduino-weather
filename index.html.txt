@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Arduino Weather System</title>
+<style>
+  body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f0f0f0; }
+  nav { background:#333; color:white; padding:10px; display:flex; gap:20px; }
+  nav a { color:white; text-decoration:none; }
+  section { padding:20px; display:none; }
+  section.active { display:block; }
+  table { border-collapse:collapse; width:100%; margin-top:10px; }
+  table, th, td { border:1px solid #333; padding:5px; text-align:center; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" onclick="showSection('weather')">Weather</a>
+  <a href="#" onclick="showSection('forecast')">Forecast</a>
+  <a href="#" onclick="showSection('system')">Development</a>
+</nav>
+
+<section id="weather" class="active">
+  <h2>Live Weather</h2>
+  <p>Temperature: <span id="temp">--</span> °C</p>
+  <p>Humidity: <span id="hum">--</span> %</p>
+  <p>Wind: <span id="wind">--</span></p>
+  <p>Air Quality: <span id="air">--</span></p>
+  <p>Weather Condition: <span id="weatherCond">--</span></p>
+  <p>Pump Status: <span id="pump">--</span></p>
+  <p>Heater Status: <span id="heater">--</span></p>
+</section>
+
+<section id="forecast">
+  <h2>Forecast</h2>
+  <p>1-Day Forecast:</p>
+  <p>Temperature: <span id="fTemp">--</span> °C</p>
+  <p>Humidity: <span id="fHum">--</span> %</p>
+  <p>Wind: <span id="fWind">--</span></p>
+  <p>Predicted Condition: <span id="fCond">--</span></p>
+
+  <h3>Weekly Averages</h3>
+  <ul>
+    <li>Sunny Avg Temp: <span id="sunnyAvg">--</span></li>
+    <li>Rainy Avg Temp: <span id="rainyAvg">--</span></li>
+    <li>Cloudy Avg Temp: <span id="cloudyAvg">--</span></li>
+    <li>Windy Avg Temp: <span id="windyAvg">--</span></li>
+    <li>Snow Avg Temp: <span id="snowAvg">--</span></li>
+  </ul>
+</section>
+
+<section id="system">
+  <h2>System Status</h2>
+  <ul>
+    <li>Temp Sensor: <span id="sysTemp">--</span></li>
+    <li>Humidity Sensor: <span id="sysHum">--</span></li>
+    <li>Wind Sensor: <span id="sysWind">--</span></li>
+    <li>Rain Sensor: <span id="sysRain">--</span></li>
+    <li>Air Sensor: <span id="sysAir">--</span></li>
+    <li>Pump: <span id="sysPump">--</span></li>
+    <li>Heater: <span id="sysHeater">--</span></li>
+  </ul>
+
+  <h3>Forecast Data (SD Card)</h3>
+  <table id="forecastData">
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Temp</th>
+        <th>Hum</th>
+        <th>Wind</th>
+        <th>Air</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+<script>
+function showSection(id){
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function getLiveData(){
+  fetch('/live')
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('temp').innerText = data.temp;
+      document.getElementById('hum').innerText = data.hum;
+      document.getElementById('wind').innerText = data.wind;
+      document.getElementById('air').innerText = data.air;
+      document.getElementById('weatherCond').innerText = data.weatherCond;
+      document.getElementById('pump').innerText = data.pump;
+      document.getElementById('heater').innerText = data.heater;
+
+      document.getElementById('fTemp').innerText = data.forecast.temp;
+      document.getElementById('fHum').innerText = data.forecast.hum;
+      document.getElementById('fWind').innerText = data.forecast.wind;
+      document.getElementById('fCond').innerText = data.forecast.condition;
+
+      document.getElementById('sunnyAvg').innerText = data.weekly.sunny;
+      document.getElementById('rainyAvg').innerText = data.weekly.rain;
+      document.getElementById('cloudyAvg').innerText = data.weekly.cloudy;
+      document.getElementById('windyAvg').innerText = data.weekly.windy;
+      document.getElementById('snowAvg').innerText = data.weekly.snow;
+
+      document.getElementById('sysTemp').innerText = data.temp;
+      document.getElementById('sysHum').innerText = data.hum;
+      document.getElementById('sysWind').innerText = data.wind;
+      document.getElementById('sysRain').innerText = data.rain;
+      document.getElementById('sysAir').innerText = data.air;
+      document.getElementById('sysPump').innerText = data.pump;
+      document.getElementById('sysHeater').innerText = data.heater;
+
+      let tbody = document.querySelector('#forecastData tbody');
+      tbody.innerHTML = '';
+      data.sdLog.forEach(row => {
+        let tr = document.createElement('tr');
+        row.forEach(cell => {
+          let td = document.createElement('td');
+          td.innerText = cell;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    });
+}
+
+setInterval(getLiveData, 2000);
+</script>
+</body>
+</html>
